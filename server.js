@@ -5,6 +5,12 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { Configuration, OpenAIApi } = require("openai");
 
+
+
+const app = express();
+const db = require("./config/db");
+const User = require("./models/user");
+require("dotenv").config();
 // Creating an instance of OpenAIApi with API key from the environment variables
 const openai = new OpenAIApi(
   new Configuration({
@@ -12,11 +18,6 @@ const openai = new OpenAIApi(
   })
   // new Configuration({ apiKey: `${process.env.OPENAI_API_KEY}`})
 );
-
-const app = express();
-const db = require("./config/db");
-const User = require("./models/user");
-require("dotenv").config();
 app.use(
   cors({
     origin: `${process.env.CLIENT_URL}`, // Replace with your front-end URL
@@ -130,17 +131,6 @@ app.post("/api/v1/improve", async (req, res) => {
         );
     }
 
-
-
-    // GPT35Turbo(GPT35TurboMessage).then((response) => {
-    //   const wordsLeft = user.wordsLeft = countWords(response)
-    //   console.log(wordsLeft)
-    //   if (wordsLeft < 0) {
-    //     return res.status(403).send("Not enough words left");
-    //   }
-    //   await User.findByIdAndUpdate(userid, { $set: { wordsLeft } });
-    //   return res.status(200).send(response);
-    // });
     GPT35Turbo(GPT35TurboMessage).then(async (response) => {
       const wordsLeft = user.wordsLeft - countWords(response);
       console.log(wordsLeft);
@@ -151,10 +141,6 @@ app.post("/api/v1/improve", async (req, res) => {
       return res.status(200).send(response);
     });
     
-
-    // Update user's word count in the database
-
-    // return res.send("Success");
   } catch (err) {
     console.error(err);
     return res.status(500).send("Internal server error");

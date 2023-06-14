@@ -11,7 +11,7 @@ module.exports = {
       const user = await User.findById(userid);
 
       // Check if the user already has a subscription
-      if (user.subscriptionStatus) {
+      if (user.subscriptionStatus && user.subscriptionStatus != "Free plan") {
         return res.status(200).json({ message: "User already subscribed" });
       }
 
