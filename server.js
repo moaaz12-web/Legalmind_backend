@@ -111,11 +111,7 @@ app.post("/api/v1/improve", async (req, res) => {
       },
     ];
 
-    // Validate request body
-    if (!text || !lang || !userid) {
-      return res.status(400).send("Missing required fields");
-    }
-
+    
     // Find the user by ID
     const user = await User.findById(userid);
     if (!user) {
