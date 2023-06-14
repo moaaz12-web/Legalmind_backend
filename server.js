@@ -157,7 +157,7 @@ app.post("/api/v1/improve", async (req, res) => {
     // return res.send("Success");
   } catch (err) {
     console.error(err);
-    return res.status(500).send("Internal server error");
+    return res.status(500).send("Internal server error", err);
   }
 });
 
