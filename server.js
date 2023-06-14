@@ -4,7 +4,10 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { Configuration, OpenAIApi } = require("openai");
-
+const app = express();
+const db = require("./config/db");
+const User = require("./models/user");
+require("dotenv").config();
 // Creating an instance of OpenAIApi with API key from the environment variables
 const openai = new OpenAIApi(
   new Configuration({
@@ -12,11 +15,6 @@ const openai = new OpenAIApi(
   })
   // new Configuration({ apiKey: `${process.env.OPENAI_API_KEY}`})
 );
-
-const app = express();
-const db = require("./config/db");
-const User = require("./models/user");
-require("dotenv").config();
 app.use(
   cors({
     origin: `${process.env.CLIENT_URL}`, // Replace with your front-end URL
