@@ -4,8 +4,13 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { Configuration, OpenAIApi } = require("openai");
+
+// Creating an instance of OpenAIApi with API key from the environment variables
 const openai = new OpenAIApi(
-  new Configuration({ apiKey: process.env.OPENAI_API_KEY })
+  new Configuration({
+    apiKey: "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",
+  })
+  // new Configuration({ apiKey: `${process.env.OPENAI_API_KEY}`})
 );
 
 const app = express();
@@ -30,10 +35,7 @@ app.use("/user", require("./routes/users"));
 app.use("/doc", require("./routes/document"));
 app.use("/subscription", require("./routes/subscription"));
 
-const stripe = require("stripe")(
-  `${process.env.STRIPE_SECRET_KEY}`
-);
-
+const stripe = require("stripe")(`${process.env.STRIPE_SECRET_KEY}`);
 
 app.post("/create-checkout-session", async (req, res) => {
   const { priceid, subType } = req.body;
@@ -58,11 +60,15 @@ app.post("/create-checkout-session", async (req, res) => {
 
 const countWords = (text) => text.trim().split(/\s+/).length;
 
+let scenario = `You are a helpful assistant designed to explain complex documents to users. They will provide you with long passage of text,
+and you will have to simplify them and explain to them in an easy to understand language with analogies and examples (if needed).\n`;
+
 let GPT35Turbo = async (message) => {
   const response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: message,
   });
+
   return response.data.choices[0].message.content;
 };
 
@@ -93,6 +99,17 @@ app.post("/api/v1/improve", async (req, res) => {
   try {
     const { text, lang, userid } = req.body;
 
+    const GPT35TurboMessage = [
+      {
+        role: "system",
+        content: scenario,
+      },
+      {
+        role: "user",
+        content: `Explain this document in ${lang} language, easily: \n ${text}`,
+      },
+    ];
+
     // Validate request body
     if (!text || !lang || !userid) {
       return res.status(400).send("Missing required fields");
@@ -105,43 +122,64 @@ app.post("/api/v1/improve", async (req, res) => {
     }
 
     // Check if the user has words left
-    if (user.wordsLeft === 0) {
-      return res.status(403).send("No words left");
+    if (user.wordsLeft === 0 || user.wordsLeft < 0) {
+      return res
+        .status(403)
+        .send(
+          "No words left, switch to a paid plan or upgrade your existing plan!"
+        );
     }
 
-    // Check if there are enough words left for the request
-    const wordsLeft = user.wordsLeft - countWords(text);
-    if (wordsLeft < 0) {
-      return res.status(403).send("Not enough words left");
-    }
+
+
+    // GPT35Turbo(GPT35TurboMessage).then((response) => {
+    //   const wordsLeft = user.wordsLeft = countWords(response)
+    //   console.log(wordsLeft)
+    //   if (wordsLeft < 0) {
+    //     return res.status(403).send("Not enough words left");
+    //   }
+    //   await User.findByIdAndUpdate(userid, { $set: { wordsLeft } });
+    //   return res.status(200).send(response);
+    // });
+    GPT35Turbo(GPT35TurboMessage).then(async (response) => {
+      const wordsLeft = user.wordsLeft - countWords(response);
+      console.log(wordsLeft);
+      if (wordsLeft < 0) {
+        return res.status(403).send("Not enough words left");
+      }
+      await User.findByIdAndUpdate(userid, { $set: { wordsLeft } });
+      return res.status(200).send(response);
+    });
+    
 
     // Update user's word count in the database
-    await User.findByIdAndUpdate(userid, { $set: { wordsLeft } });
 
-    return res.send("Success");
+    // return res.send("Success");
   } catch (err) {
     console.error(err);
     return res.status(500).send("Internal server error");
   }
 });
 
-// app.post("/api/v1/improve", (req, res) => {
-//   const { text, lang, userid } = req.body;
-//   const GPT35TurboMessage = [{
-//     role: "system",
-//     content: `You are a helpful assistant designed to explain complex documents to users. They will provide you with long passage of text,
-//        and you will have to simplify them and explain to them in an easy to understand language with analogies and examples (if needed).\n Explain this document in ${lang} language, easily: \n ${text}`,
-// }];
-//     GPT35Turbo(GPT35TurboMessage).then((response) => {
-//         console.log(response);
-//         const wordCount = countWords(reponse);
-//         return res.send("IMPROVED TEXT");
-//       }).catch((err) => {
-//         console.log(err);
-//         return res.send("ERROR");
-//       });
-//     res.send("BACKEND RESP")
-//   });
+app.post("/api/v2", (req, res) => {
+  const { text, lang } = req.body;
+
+  const GPT35TurboMessage = [
+    {
+      role: "system",
+      content: scenario,
+    },
+    {
+      role: "user",
+      content: `Explain this document in ${lang} language, easily: \n ${text}`,
+    },
+  ];
+
+  GPT35Turbo(GPT35TurboMessage).then((response) => {
+    console.log(response);
+    return res.status(200).send(response);
+  });
+});
 
 app.listen(PORT, function () {
   console.log(`Server Runs Perfectly at http://localhost:${PORT}`);

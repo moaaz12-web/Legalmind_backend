@@ -17,12 +17,12 @@ const UserSchema = new Schema({
     },
     subscriptionStatus: {
         type: String,
-        enum: ["Basic", "Standard", "Premium"],
-        default: "Basic",
+        enum: ["Free plan", "Basic", "Standard", "Premium"],
+        default: "Free plan",
       },
       wordsLeft: {
         type: Number,
-        default: 0,
+        default: 500,
       },
 }, { timestamps: true });
 

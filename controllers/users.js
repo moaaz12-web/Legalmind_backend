@@ -181,7 +181,7 @@ module.exports = {
         });
         return res.json({
           status: "Success",
-          message: "welcom " + user.name + " to your home page",
+          message: "welcome" + user.name + " to your home page",
           user,
           token,
         });
