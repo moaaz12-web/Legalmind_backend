@@ -48,7 +48,6 @@ app.post("/create-checkout-session", async (req, res) => {
       line_items: [{ price: priceid, quantity: 1 }],
       mode: "subscription",
     });
-
     // res.status(200).json(session);
     res.json({ url: session.url });
   } catch (error) {
@@ -143,25 +142,25 @@ app.post("/api/v1/improve", async (req, res) => {
   }
 });
 
-app.post("/api/v2", (req, res) => {
-  const { text, lang } = req.body;
+// app.post("/api/v2", (req, res) => {
+//   const { text, lang } = req.body;
 
-  const GPT35TurboMessage = [
-    {
-      role: "system",
-      content: scenario,
-    },
-    {
-      role: "user",
-      content: `Explain this document in ${lang} language, easily: \n ${text}`,
-    },
-  ];
+//   const GPT35TurboMessage = [
+//     {
+//       role: "system",
+//       content: scenario,
+//     },
+//     {
+//       role: "user",
+//       content: `Explain this document in ${lang} language, easily: \n ${text}`,
+//     },
+//   ];
 
-  GPT35Turbo(GPT35TurboMessage).then((response) => {
-    console.log(response);
-    return res.status(200).send(response);
-  });
-});
+//   GPT35Turbo(GPT35TurboMessage).then((response) => {
+//     console.log(response);
+//     return res.status(200).send(response);
+//   });
+// });
 
 app.listen(PORT, function () {
   console.log(`Server Runs Perfectly at http://localhost:${PORT}`);

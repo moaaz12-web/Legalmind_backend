@@ -5,6 +5,7 @@
 /frontend/.pnp.js
 
 .env
+help.txt
 
 # testing
 /frontend/coverage
